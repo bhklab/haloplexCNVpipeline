@@ -1,0 +1,7 @@
+procdata/*
+results/*
+reference/*
+metadata/*
+.snakemake/*
+cnvkit.py
+bin/*
