@@ -1,0 +1,18 @@
+samples:
+    - 'LMS03p84.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated'
+    - 'LMS04p35.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated'
+    - 'LMS05p39.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated'
+    - 'LMS676p17.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated'
+    - 'LMS_01-612.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated'
+    - 'LMS_01-1032.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated'
+    - 'LMS_02-500.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated'
+    - 'LMS_03-017.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated'
+    - 'LMS_03-301.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated'
+    - 'LMS_04-321.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated'
+    - 'LMS_90-422.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated'
+    - 'LMS_92-543.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated'
+
+targets: '04818-1412703719_AllTracks'
+reference: 'hg19'
+nthread: 14
+segmenter: 'ascat'
