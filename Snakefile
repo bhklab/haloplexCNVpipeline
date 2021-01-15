@@ -29,7 +29,7 @@ rule equalize_target_bins:
     output:
         'metadata/binnedTargets.bed'
     shell:
-        'python cnvkit.py target {input} --split -o {sample_names}'
+        'python3 cnvkit.py target {input} --split -o {output}'
 
 
 rule autocalculate_offtarget_bins:
@@ -40,7 +40,7 @@ rule autocalculate_offtarget_bins:
         'results/binnedTargets.target.bed',
         'results/binnedTargets.antitarget.bed'
     shell:
-        'python cnvkit.py autobin {input.samples} -t {input.target} --method amplicon;'
+        'python3 cnvkit.py autobin {input.samples} -t {input.target} --method amplicon;'
         'mv *.bed results;'
 
 
@@ -55,11 +55,12 @@ rule calculate_per_sample_target_antitarget_coverage:
     run:
         for i in range(len(input.samples)):
             sample, target, antitarget = input.samples[i], output.target[i], output.antitarget[i]
-            shell(f'python cnvkit.py coverage {sample} {input.target_bed} -o {target} -p {nthread}')
-            shell(f'python cnvkit.py coverage {sample} {input.antitarget_bed} -o {antitarget} -p {nthread}')
+            shell(f'python3 cnvkit.py coverage {sample} {input.target_bed} -o {target} -p {nthread}')
+            shell(f'python3 cnvkit.py coverage {sample} {input.antitarget_bed} -o {antitarget} -p {nthread}')
 
 
 # ---- 2. Create copy number calls for reference
+## If this step breaks make sure to delete the reference fai file, it could be corrupted
 rule call_reference_copy_numbers:
      input:
         reference=expand('reference/{reference}.fa', reference=reference),
@@ -67,7 +68,7 @@ rule call_reference_copy_numbers:
      output:
         expand('reference/{reference}.cnn', reference=reference)
      shell:
-        'python cnvkit.py reference -o {output} -f {input.reference} -t {input.targets}'
+        'python3 cnvkit.py reference -o {output} -f {input.reference} -t {input.targets}'
 
 
 # ---- 3. Calculate per sample copy number ratio, adjusting for regional coverage and GC bias
@@ -81,7 +82,7 @@ rule call_sample_copynumber_ratios:
     run:
         for i in range(len(input.sample_targets)):
             target, antitarget, result = input.sample_targets[i], input.sample_antitargets[i], output.results[i]
-            shell('python cnvkit.py fix {target} {antitarget} {input.reference} -o {result}')
+            shell('python3 cnvkit.py fix {target} {antitarget} {input.reference} -o {result}')
 
 
 # ---- 4. Segment per sample copy number ratios, dropping outliers and low coverage regions
@@ -93,7 +94,7 @@ rule segment_sample_copynumber_ratios:
     run:
         for i in range(len(input.cn_ratios)):
             ratio, result = input.cn_ratios[i], output.results[i]
-            shell('python cnvkit.py segment {ratio} -o {result} -m {segmenter} --drop-low-coverage --drop-outliers')
+            shell('python3 cnvkit.py segment {ratio} -o {result} -m {segmenter} --drop-low-coverage --drop-outliers')
 
 
 # ---- 5. Call integer copy numbers for each segment
@@ -105,7 +106,7 @@ rule call_sample_integer_copynumbers:
     run:
         for i in range(len(input)):
             segment, result = input[i], output[i]
-            shell('python cnvkit.py call {segment} -y -m threshold -t=-1.1,-0.4,0.3,0.7 -o {result}')
+            shell('python3 cnvkit.py call {segment} -y -m threshold -t=-1.1,-0.4,0.3,0.7 -o {result}')
 
 
 # ---- 6. Generate per sample copy number ratio/segment scatter plots
@@ -118,7 +119,7 @@ rule scatterplot_sample_copynumber:
     run:
         for i in range(len(input.cns)):
             cns, cnr, result = input.cns[i], input.cnr[i], output[i]
-            shell('python cnvkit.py scatter {cnr} -s {cns} -o {result}')
+            shell('python3 cnvkit.py scatter {cnr} -s {cns} -o {result}')
 
 
 # ---- 7. Generate all sample heatmap
@@ -128,7 +129,7 @@ rule heatmap_copynumber_summary:
     output:
         'results/figures/lmsHaloplexHeatmap.pdf'
     shell:
-        'python cnvkit.py heatmap {input} -o {output}'
+        'python3 cnvkit.py heatmap {input} -o {output}'
 
 
 # ---- 8. Generate per sample chrosome diagrams
@@ -142,6 +143,6 @@ rule plot_sample_chromosome_diagrams:
     run:
         for i in range(len(input.cnr)):
             cns, cnr, result = input.cns[i], input.cnr[i], output[i]
-            shell('python cnvkit.py diagram {cnr} -s {cns} -o {result}')
+            shell('python3 cnvkit.py diagram {cnr} -s {cns} -o {result}')
 
 #https://harvardlms.blob.core.windows.net/lms/LMSARC/harvardlms/LMSmodelSystems/CancerCellLines/HaloplexAnalysis/
