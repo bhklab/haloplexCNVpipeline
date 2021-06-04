@@ -60,7 +60,7 @@ rule calculate_per_sample_target_antitarget_coverage:
 
 
 # ---- 2. Create copy number calls for reference
-## If this step breaks make sure to delete the reference fai file, it could be corrupted
+## If this step fails make sure to delete the reference fai file, it could be corrupted
 rule call_reference_copy_numbers:
      input:
         reference=expand('reference/{reference}.fa', reference=reference),
@@ -94,7 +94,7 @@ rule segment_sample_copynumber_ratios:
     run:
         for i in range(len(input.cn_ratios)):
             ratio, result = input.cn_ratios[i], output.results[i]
-            shell('python3 cnvkit.py segment {ratio} -o {result} -m {segmenter} --drop-low-coverage --drop-outliers')
+            shell('python3 cnvkit.py segment {ratio} -p {nthread} -o {result} -m {segmenter} --drop-low-coverage --drop-outliers 10')
 
 
 # ---- 5. Call integer copy numbers for each segment

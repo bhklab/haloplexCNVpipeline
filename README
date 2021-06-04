@@ -1,3 +1,6 @@
 #OWNER: Christopher Eeles
 #DATE: 2020/08/11
 #DESC: Analysis of 8 LMS Cancer Cell Lines Sequenced via Haloplex Target Enrichment System Using the CNV Kit Python Package. Copy number calls from this analysis will be used to estimate chromosomal instability as a potential prognostic market for LMS treatment planning.
+
+See https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1004873 for details on 
+the method for CNV calling from targeted sequening data used in the CNVkit package.
