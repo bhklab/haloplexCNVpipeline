@@ -13,7 +13,24 @@ segmenter = config['segmenter']
 
 ## TODO: Add segmenter name to output segmentation files 
 
-# ---- 0. Get cnvkit.py scripts from GitHub and make symlink in top level directory
+# ---- 0. All rule, this ensures all the rules are run with `snakemake --cores n`
+rule all:
+    input:
+        # copy ratio calls
+        expand('results/{sample_names}.cnr', sample_names=sample_names),
+        # copy segment calls
+        expand('results/{sample_names}.cns', sample_names=sample_names),
+        # integer segment calls
+        expand('results/{sample_names}.call.cns', sample_names=sample_names),
+        # scatter plots
+        expand('results/figures/{sample_names}_scatter.svg', sample_names=sample_names),
+        # heatmap
+        'results/figures/lmsHaloplexHeatmap.pdf',
+        # chromosome plots
+        expand('results/figures/{sample_names}_chromosome.pdf', sample_names=sample_names)
+
+
+# ---- 1. Get cnvkit.py scripts from GitHub and make symlink in top level directory
 rule pull_cnvkit_github:
     output:
         'bin/cnvkit/cnvkit.py'
@@ -22,7 +39,7 @@ rule pull_cnvkit_github:
         'ln -s bin/cnvkit/cnvkit.py .'
 
 
-# ---- 1. Preprocess target and antitarget bins
+# ---- 2. Preprocess target and antitarget bins
 rule equalize_target_bins:
     input:
         expand('metadata/{targets}.bed', targets=config['targets'])
@@ -51,8 +68,10 @@ rule calculate_per_sample_target_antitarget_coverage:
         target_bed='results/binnedTargets.target.bed',
         antitarget_bed='results/binnedTargets.antitarget.bed'
     output:
-        target=expand('results/{sample_names}.targetcoverage.cnn', sample_names=sample_names),
-        antitarget=expand('results/{sample_names}.antitargetcoverage.cnn', sample_names=sample_names)
+        target=expand('results/{sample_names}.targetcoverage.cnn', 
+            sample_names=sample_names),
+        antitarget=expand('results/{sample_names}.antitargetcoverage.cnn', 
+            sample_names=sample_names)
     run:
         for i in range(len(input.samples)):
             sample, target, antitarget = input.samples[i], output.target[i], output.antitarget[i]
@@ -60,7 +79,7 @@ rule calculate_per_sample_target_antitarget_coverage:
             shell(f'python3 cnvkit.py coverage {sample} {input.antitarget_bed} -o {antitarget} -p {nthread}')
 
 
-# ---- 2. Create copy number calls for reference
+# ---- 3. Create copy number calls for reference
 ## If this step fails make sure to delete the reference fai file, it could be corrupted
 rule call_reference_copy_numbers:
     input:
@@ -72,7 +91,7 @@ rule call_reference_copy_numbers:
         'python3 cnvkit.py reference -o {output} -f {input.reference} -t {input.targets} --no-edge'
 
 
-# ---- 3. Calculate per sample copy number ratio, adjusting for regional coverage and GC bias
+# ---- 4. Calculate per sample copy number ratio, adjusting for regional coverage and GC bias
 rule call_sample_copynumber_ratios:
     input:
         sample_targets=expand('results/{sample_names}.targetcoverage.cnn', sample_names=sample_names),
@@ -86,7 +105,7 @@ rule call_sample_copynumber_ratios:
             shell('python3 cnvkit.py fix {target} {antitarget} {input.reference} -o {result} --no-edge')
 
 
-# ---- 4. Segment per sample copy number ratios, dropping outliers and low coverage regions
+# ---- 5. Segment per sample copy number ratios, dropping outliers and low coverage regions
 rule segment_sample_copynumber_ratios:
     input:
         cn_ratios=expand('results/{sample_names}.cnr', sample_names=sample_names)
@@ -98,7 +117,7 @@ rule segment_sample_copynumber_ratios:
             shell('python3 cnvkit.py segment {ratio} -p {nthread} -o {result} -m {segmenter} --drop-low-coverage --drop-outliers 10')
 
 
-# ---- 5. Call integer copy numbers for each segment
+# ---- 6. Call integer copy numbers for each segment
 rule call_sample_integer_copynumbers:
     input:
         expand('results/{sample_names}.cns', sample_names=sample_names)
@@ -110,7 +129,7 @@ rule call_sample_integer_copynumbers:
             shell('python3 cnvkit.py call {segment} -y -m threshold -t=-1.1,-0.4,0.3,0.7 -o {result}')
 
 
-# ---- 6. Generate per sample copy number ratio/segment scatter plots
+# ---- 7. Generate per sample copy number ratio/segment scatter plots
 rule scatterplot_sample_copynumber:
     input:
         cns=expand('results/{sample_names}.cns', sample_names=sample_names),
@@ -123,7 +142,7 @@ rule scatterplot_sample_copynumber:
             shell('python3 cnvkit.py scatter {cnr} -s {cns} -o {result}')
 
 
-# ---- 7. Generate all sample heatmap
+# ---- 8. Generate all sample heatmap
 rule heatmap_copynumber_summary:
     input:
         expand('results/{sample_names}.cns', sample_names=sample_names)
@@ -133,7 +152,7 @@ rule heatmap_copynumber_summary:
         'python3 cnvkit.py heatmap {input} -o {output}'
 
 
-# ---- 8. Generate per sample chrosome diagrams
+# ---- 9. Generate per sample chrosome diagrams
 rule plot_sample_chromosome_diagrams:
     input:
         cns=expand('results/{sample_names}.cns', sample_names=sample_names),
