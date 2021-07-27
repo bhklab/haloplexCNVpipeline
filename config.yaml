@@ -13,5 +13,5 @@ samples:
     - LMS_92-543.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated
 targets: 04818-1412703719_Covered
 reference: 'hg19'
-nthread: 14
+nthread: 8
 segmenter: 'cbs'

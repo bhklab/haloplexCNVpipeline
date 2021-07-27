@@ -11,7 +11,7 @@ reference = config['reference']
 segmenter = config['segmenter']
 
 
-## TODO: Add segmenter name to output segmentation files
+## TODO: Add segmenter name to output segmentation files 
 
 # ---- 0. Get cnvkit.py scripts from GitHub and make symlink in top level directory
 rule pull_cnvkit_github:
@@ -31,7 +31,8 @@ rule equalize_target_bins:
     shell:
         'python3 cnvkit.py target {input} --split -o {output}'
 
-
+# When --method amplicon, *.antitargets.bed is a blank dummy file and no antitarget information
+#>is used.
 rule autocalculate_offtarget_bins:
     input:
         samples=expand('procdata/{samples}.bam', samples=config['samples']),
@@ -62,13 +63,13 @@ rule calculate_per_sample_target_antitarget_coverage:
 # ---- 2. Create copy number calls for reference
 ## If this step fails make sure to delete the reference fai file, it could be corrupted
 rule call_reference_copy_numbers:
-     input:
+    input:
         reference=expand('reference/{reference}.fa', reference=reference),
         targets='results/binnedTargets.target.bed'
-     output:
+    output:
         expand('reference/{reference}.cnn', reference=reference)
-     shell:
-        'python3 cnvkit.py reference -o {output} -f {input.reference} -t {input.targets}'
+    shell:
+        'python3 cnvkit.py reference -o {output} -f {input.reference} -t {input.targets} --no-edge'
 
 
 # ---- 3. Calculate per sample copy number ratio, adjusting for regional coverage and GC bias
@@ -82,7 +83,7 @@ rule call_sample_copynumber_ratios:
     run:
         for i in range(len(input.sample_targets)):
             target, antitarget, result = input.sample_targets[i], input.sample_antitargets[i], output.results[i]
-            shell('python3 cnvkit.py fix {target} {antitarget} {input.reference} -o {result}')
+            shell('python3 cnvkit.py fix {target} {antitarget} {input.reference} -o {result} --no-edge')
 
 
 # ---- 4. Segment per sample copy number ratios, dropping outliers and low coverage regions
@@ -145,4 +146,3 @@ rule plot_sample_chromosome_diagrams:
             cns, cnr, result = input.cns[i], input.cnr[i], output[i]
             shell('python3 cnvkit.py diagram {cnr} -s {cns} -o {result}')
 
-#https://harvardlms.blob.core.windows.net/lms/LMSARC/harvardlms/LMSmodelSystems/CancerCellLines/HaloplexAnalysis/
