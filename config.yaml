@@ -11,7 +11,7 @@ samples:
     - LMS676p17.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated
     - LMS_90-422.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated
     - LMS_92-543.primary.contigSort.sorted.headers.indelRealigned_single.baseRecalibrated
-targets: 04818-1412703719_Covered
+targets: 04818-1412703719_Amplicons.bed
 reference: 'hg19'
 nthread: 8
 segmenter: 'cbs'
